@@ -3,20 +3,51 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Notification extends Model
 {
-    use HasFactory;
+    // La clé primaire n'est pas auto-incrémentée
+    public $incrementing = false;
 
+    // La clé primaire est de type string
+    protected $keyType = 'string';
+
+    
+    // Les champs qui peuvent être assignés en masse
     protected $fillable = [
-        'user_id',
         'type',
-        'contenu',
-        'is_read'
+        'data',
+        'read_at',
+        'notifiable_id',
+        'notifiable_type'
     ];
 
-    public function user() {
-        return $this->belongsTo(User::class);
+    // Optionnel : si tu ne veux pas utiliser les timestamps
+    // public $timestamps = false;
+
+    /**
+     * Boot the model.
+     * Génère automatiquement un UUID lors de la création.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
+    }
+
+    
+
+    /**
+     * Définition de la relation polymorphique (exemple pour notification)
+     */
+    public function notifiable()
+    {
+        return $this->morphTo();
     }
 }

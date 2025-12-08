@@ -14,6 +14,8 @@ class Evenement extends Model
     ];
 
     public function users() {
-        return $this->belongsToMany(User::class);
-    }
+    return $this->belongsToMany(User::class, 'evenement_user')->withTimestamps();
+}
+
+
 }

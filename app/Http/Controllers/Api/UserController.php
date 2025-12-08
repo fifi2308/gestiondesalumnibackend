@@ -30,9 +30,19 @@ class UserController extends Controller
     }
 
     // Récupérer le profil de l’utilisateur connecté
-    public function profile(Request $request) {
-        return response()->json($request->user());
-    }
+
+        public function profile(Request $request) {
+    $user = $request->user();
+
+    return response()->json([
+        'user' => $user,
+        'followers_count' => $user->followers()->count(),
+        'following_count' => $user->following()->count(),
+        'connections' => $user->following()->count(), // optionnel
+        'posts_count' => $user->posts()->count() ?? 0
+    ]);
+}
+
 
     // Mettre à jour le profil de l’utilisateur connecté
     public function updateProfile(Request $request) {
@@ -79,5 +89,65 @@ class UserController extends Controller
 
     return response()->json(['message' => 'Mot de passe mis à jour avec succès !']);
 }
+
+// Récupérer les suggestions d'utilisateurs (exclut l'utilisateur connecté et les admins)
+public function suggestions() {
+    $userId = auth()->id();
+    $users = User::where('id', '!=', $userId)
+                 ->where('role', '!=', 'admin')
+                 ->get();
+    return response()->json($users);
+}
+
+// Pour suivre un utilisateur
+public function follow($id) {
+    $user = auth()->user();
+    $target = User::findOrFail($id);
+
+    if (!$user->following()->where('follow_id', $id)->exists()) {
+        $user->following()->attach($id);
+        return response()->json(['message' => "Vous suivez {$target->name}"]);
+    }
+
+    return response()->json(['message' => "Vous suivez déjà {$target->name}"], 400);
+}
+
+
+// Pour récupérer les relations de suivi
+public function unfollow($id) {
+    $user = auth()->user();
+    $target = User::findOrFail($id);
+
+    if ($user->following()->where('follow_id', $id)->exists()) {
+        $user->following()->detach($id);
+        return response()->json(['message' => "Vous ne suivez plus {$target->name}"]);
+    }
+
+    return response()->json(['message' => "Vous ne suivez pas {$target->name}"], 400);
+}
+
+public function block($id)
+{
+    $user = User::find($id);
+    if (!$user) return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+
+    $user->is_blocked = true;
+    $user->save();
+
+    return response()->json(['message' => 'Utilisateur bloqué avec succès']);
+}
+
+public function unblock($id)
+{
+    $user = User::find($id);
+    if (!$user) return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+
+    $user->is_blocked = false;
+    $user->save();
+
+    return response()->json(['message' => 'Utilisateur débloqué avec succès']);
+}
+
+
 
 }

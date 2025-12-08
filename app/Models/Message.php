@@ -6,12 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $fillable = [
-        'sender_id',
-        'receiver_id',
-        'contenu',
-        'is_read'
-    ];
+protected $fillable = [
+    'sender_id',
+    'receiver_id',
+    'contenu',
+    'image_path',
+    'video_path',
+];
+
+
 
     public function sender() {
         return $this->belongsTo(User::class, 'sender_id');

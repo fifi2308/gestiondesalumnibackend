@@ -8,6 +8,7 @@ use App\Models\Postulation;
 use App\Models\Offre;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\GenericNotification; // ✅ Import correct
 
 class PostulationController extends Controller
 {
@@ -33,6 +34,13 @@ class PostulationController extends Controller
             'message' => 'nullable|string',
         ]);
 
+        
+// 🔹 Notifier le propriétaire de l’offre
+$offre = Offre::find($request->offre_id);
+if ($offre && $offre->user_id !== $user->id) {
+    $offreOwner = $offre->user;
+   
+
         // 🔹 Vérifier si l'utilisateur a déjà postulé à cette offre
         $exists = Postulation::where('offre_id', $request->offre_id)
                               ->where('user_id', $user->id)
@@ -45,7 +53,7 @@ class PostulationController extends Controller
         // 🔹 Stocker le CV
         $cvPath = $request->file('cv')->store('cvs', 'public');
 
-        // 🔹 Créer la postulation
+        // ✅ CRÉER LA POSTULATION D'ABORD (IMPORTANT!)
         $postulation = Postulation::create([
             'offre_id' => $request->offre_id,
             'user_id' => $user->id,
@@ -57,12 +65,23 @@ class PostulationController extends Controller
             'message' => $request->message ?? ''
         ]);
 
+     
+         $offreOwner->notify(new GenericNotification([
+        'message' => "{$user->name} a postulé à votre offre : {$offre->titre}",
+        'type' => 'postulation',
+        'data' => [
+            'postulation_id' => $postulation->id,
+            'offre_id' => $offre->id,
+            'user_id' => $user->id
+        ]
+    ]));
+
         return response()->json([
             'message' => 'Candidature envoyée avec succès.',
             'postulation' => $postulation
         ], 201);
     }
-
+    }
     // 🔹 Afficher une postulation spécifique
     public function show($id)
     {

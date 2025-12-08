@@ -7,6 +7,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotificationBase;
+use App\Models\Actualite;
+use Illuminate\Support\Str;
+
 
 class User extends Authenticatable
 {
@@ -23,6 +26,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+protected $appends = ['photo_url'];
 
     // Relations
     public function profil() {
@@ -41,9 +46,11 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
+    
     public function evenements() {
-        return $this->belongsToMany(Evenement::class);
-    }
+    return $this->belongsToMany(Evenement::class, 'evenement_user')->withTimestamps();
+}
+
 
     public function groupes() {
         return $this->belongsToMany(Groupe::class);
@@ -57,4 +64,52 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+   
+// Les personnes que l'utilisateur suit
+    public function following() {
+        return $this->belongsToMany(User::class, 'follows', 'user_id', 'follow_id');
+    }
+
+    // Les personnes qui suivent l'utilisateur
+    public function followers() {
+        return $this->belongsToMany(User::class, 'follows', 'follow_id', 'user_id');
+    }
+
+   public function actualites()
+{
+    return $this->hasMany(Actualite::class, 'user_id');
+}
+
+public function getFollowersCountAttribute()
+{
+    return $this->followers()->count();
+}
+
+public function getFollowingCountAttribute()
+{
+    return $this->following()->count();
+}
+
+// Ajoute l'attribut virtuel photo_url dans la sérialisation JSON
+
+public function getPhotoUrlAttribute()
+{
+    // Priorité : colonne 'photo' sur user (si existante) puis profil.photo
+    $photo = $this->photo ?? ($this->profil->photo ?? null);
+
+    if (!$photo) {
+        // URL d'avatar par défaut (ajuste selon ton projet)
+        return asset('images/default-avatar.png'); 
+    }
+
+    // Si c'est déjà une URL complète, retourne tel quel
+    if (Str::startsWith($photo, ['http://', 'https://'])) {
+        return $photo;
+    }
+
+    // Sinon, suppose que le fichier est dans storage (storage/app/public/)
+    return asset('storage/'.$photo);
+}
+
+
 }

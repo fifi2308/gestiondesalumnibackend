@@ -17,4 +17,9 @@ class Offre extends Model
     public function user() {
         return $this->belongsTo(User::class);
     }
+
+   public function postulants()
+    {
+        return $this->hasMany(Postulation::class, 'offre_id');
+    }
 }

@@ -32,8 +32,10 @@ Schema::create('groupe_user', function (Blueprint $table) {
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-        Schema::dropIfExists('groupes');
-    }
+   public function down(): void
+{
+    Schema::dropIfExists('groupe_user');
+    Schema::dropIfExists('groupes');
+}
+
 };

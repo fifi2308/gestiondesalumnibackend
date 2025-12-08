@@ -11,7 +11,10 @@ class Profil extends Model
         'parcours_academique',
         'experiences_professionnelles',
         'competences',
-        'realisations'
+        'realisations',
+        'bio',
+        'photo',
+        'adresse'
     ];
 
     public function user() {

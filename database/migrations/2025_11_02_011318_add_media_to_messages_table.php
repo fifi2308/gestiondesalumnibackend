@@ -10,22 +10,21 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('evenements', function (Blueprint $table) {
-    $table->id();
-    $table->string('titre');
-    $table->text('description');
-    $table->dateTime('date');
-    $table->string('lieu')->nullable();
-    $table->timestamps();
-});
-    }
+{
+    Schema::table('messages', function (Blueprint $table) {
+        $table->string('image')->nullable();
+        $table->string('video')->nullable();
+    });
+}
+
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('evenements');
+        Schema::table('messages', function (Blueprint $table) {
+            //
+        });
     }
 };

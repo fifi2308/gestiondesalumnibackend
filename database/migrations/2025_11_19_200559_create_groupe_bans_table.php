@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('messages', function (Blueprint $table) {
+       Schema::create('groupe_bans', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
-    $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
-    $table->text('contenu');
-    $table->boolean('is_read')->default(false);
+    $table->foreignId('groupe_id')->constrained()->onDelete('cascade');
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->timestamps();
 });
 
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('messages');
+        Schema::dropIfExists('groupe_bans');
     }
 };
